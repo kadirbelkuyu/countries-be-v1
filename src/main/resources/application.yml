@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: countries-rest-api
+  datasource:
+    driverClassName: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/countries_db?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Turkey
+    username: root
+    password: root
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        globally_quoted_identifiers: true
+        format_sql: true
+        jdbc.batch_size: 20
+        cache.use_query_cache: false
+        cache.use_second_level_cache: false
+        cache.use_structured_entries: false
+        cache.use_minimal_puts: false
