@@ -7,6 +7,7 @@ import org.hibernate.Criteria;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -15,11 +16,14 @@ import javax.persistence.criteria.Root;
 import java.util.*;
 
 @Service
-@RequiredArgsConstructor
 public class DatabaseService {
     final CountryRepository countryRepository;
-    final EntityManager entityManager;
+    @PersistenceContext
+    private EntityManager entityManager;
 
+    public DatabaseService(CountryRepository countryRepository) {
+        this.countryRepository = countryRepository;
+    }
 
     public List<Country> findAllByCriteria(String id, String name, String continent, String currency, String phoneCode, String order) {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
@@ -45,9 +49,14 @@ public class DatabaseService {
 
 
         if (!phoneCode.isEmpty()) {
-            Predicate phoneCodePredicate = criteriaBuilder
-                    .equal(root.get("phone_code"), phoneCode);
-            predicates.add(phoneCodePredicate);
+            try {
+                int code = Integer.parseInt(phoneCode);
+                Predicate phoneCodePredicate = criteriaBuilder
+                        .equal(root.get("phone_code"), code);
+                predicates.add(phoneCodePredicate);
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
         }
 
         if (!continent.isEmpty()) {
@@ -64,18 +73,12 @@ public class DatabaseService {
         }
 
         // ORDER BY phono_code ASC/DESC
-        if (!order.isEmpty()) {
-            if (order == "asc") {
-                predicates.add((Predicate) criteriaBuilder.asc(root.get("phone_code")));
-            }
-            else
-                predicates.add((Predicate) criteriaBuilder.desc(root.get("phone_code")));
-        }
 
         // select * from country where id like '%TR%' or name like '%Turkey%' and continent like '%AS%'
-        Predicate andContinent = criteriaBuilder.and((Predicate) predicates);
-        criteriaQuery.where(andContinent);
-
+        criteriaQuery.where(predicates.toArray(new Predicate[0]));
+        criteriaQuery = order != null && order.equals("desc") ?
+                criteriaQuery.orderBy(criteriaBuilder.desc(root.get("phoneCode")))
+                : criteriaQuery.orderBy(criteriaBuilder.asc(root.get("phoneCode")));
         TypedQuery<Country> query = entityManager.createQuery(criteriaQuery);
         return query.getResultList();
 
