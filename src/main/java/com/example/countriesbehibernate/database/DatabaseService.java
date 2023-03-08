@@ -84,8 +84,86 @@ public class DatabaseService {
 
     }
 
+    public List<Country> findAllByCountry(String id, String name, String continent, String currency, String phoneCode) {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Country> criteriaQuery = criteriaBuilder.createQuery(Country.class);
+        List<Predicate> predicates = new ArrayList<>();
+
+        // select * from country
+        Root<Country> root  = criteriaQuery.from(Country.class);
+
+        // prepare WHERE clause
+        if (!id.isEmpty()) {
+            // WHERE id ='TR'
+            Predicate idPredicate = criteriaBuilder
+                    .equal(root.get("id"), id);
+            predicates.add(idPredicate);
+        }
+
+        if (!name.isEmpty()) {
+            Predicate namePredicate = criteriaBuilder
+                    .equal(root.get("name"), name);
+            predicates.add(namePredicate);
+        }
+
+
+        if (!phoneCode.isEmpty()) {
+            try {
+                int code = Integer.parseInt(phoneCode);
+                Predicate phoneCodePredicate = criteriaBuilder
+                        .equal(root.get("phone_code"), code);
+                predicates.add(phoneCodePredicate);
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+        }
+
+        if (!continent.isEmpty()) {
+            Predicate continentPredicate = criteriaBuilder
+                    .equal(root.get("continent"), continent);
+            predicates.add(continentPredicate);
+        }
+
+
+        if (!currency.isEmpty()) {
+            Predicate currencyPredicate = criteriaBuilder
+                    .equal(root.get("currency"), currency);
+            predicates.add(currencyPredicate);
+        }
+
+        // ORDER BY phono_code ASC/DESC
+
+        // select * from country where id like '%TR%' or name like '%Turkey%' and continent like '%AS%'
+        criteriaQuery.where(predicates.toArray(new Predicate[0]));
+        TypedQuery<Country> query = entityManager.createQuery(criteriaQuery);
+        return query.getResultList();
+
+    }
+
     public List<Country> insertAllCountries(List<Country> countries) {
         return countryRepository.saveAll(countries);
+    }
+
+    public List<Country> updateCountry(String id, String name, String continent, String currency, String phoneCode, Country updateCountry) {
+        List<Country> oldCountry = findAllByCountry(id, name, continent, currency, phoneCode);
+        List<Country> newCountry = new ArrayList<>();
+        for (Country c : oldCountry) {
+            if (updateCountry.getId() != null)
+                c.setId(updateCountry.getId());
+            if (updateCountry.getName() != null)
+                c.setName(updateCountry.getName());
+            if (updateCountry.getContinent() != null)
+                c.setContinent(updateCountry.getContinent());
+            if (updateCountry.getCurrency() != null)
+                c.setCurrency(updateCountry.getCurrency());
+            // we have to the bug fix
+            if (updateCountry.getPhoneCode() != 0)
+                c.setPhoneCode(updateCountry.getPhoneCode());
+            newCountry.add(c);
+        }
+        DatabaseService databaseService = new DatabaseService(countryRepository);
+        databaseService.insertAllCountries(newCountry);
+        return newCountry;
     }
 
     /*

@@ -29,6 +29,18 @@ public class CountryController {
         return databaseService.findAllByCriteria(id, name, continent, currency, phoneCode, order);
     }
 
+    @PutMapping("countries/update")
+    public List<Country> updateCountry(@RequestParam(value = "id", defaultValue = "") String id,
+                                       @RequestParam(value = "name", defaultValue = "") String name,
+                                       @RequestParam(value = "continent", defaultValue = "") String continent,
+                                       @RequestParam(value = "currency", defaultValue = "") String currency,
+                                       @RequestParam(value = "phoneCode", defaultValue = "") String phoneCode,
+                                       @RequestBody Country updateCountry) {
+        return databaseService.updateCountry(id, name, continent, currency, phoneCode, updateCountry);
+    }
+
+
+
 
 
 
