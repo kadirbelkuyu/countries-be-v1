@@ -1,0 +1,30 @@
+version: "3.8"
+services:
+  mysqldb:
+    image: mysql
+    environment:
+      MYSQL_DATABASE: 'countries_db'
+      MYSQL_USER: 'hp'
+      MYSQL_PASSWORD: '12345'
+      MYSQL_ROOT_PASSWORD: 'root'
+    volumes:
+      - ./mysql/db:/var/lib/mysql
+    ports:
+      - '3306:3306'
+    networks:
+      - country-mysql
+  countries-be:
+    image: countries-be
+    build: .
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysqldb:3306/countries_db?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Turkey&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    ports:
+      - '8080:8080'
+    depends_on:
+      - mysqldb
+    networks:
+      - country-mysql
+networks:
+  country-mysql:

@@ -2,8 +2,6 @@ package com.example.countriesbehibernate.database;
 
 import com.example.countriesbehibernate.model.Country;
 import com.example.countriesbehibernate.repository.CountryRepository;
-import lombok.RequiredArgsConstructor;
-import org.hibernate.Criteria;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
@@ -23,6 +21,14 @@ public class DatabaseService {
 
     public DatabaseService(CountryRepository countryRepository) {
         this.countryRepository = countryRepository;
+    }
+
+    public List<Country> getAllCountries() {
+        return countryRepository.findAll();
+    }
+
+    public Optional<Country> findById(String id) {
+        return countryRepository.findById(id);
     }
 
     public List<Country> findAllByCriteria(String id, String name, String continent, String currency, String phoneCode, String order) {
@@ -84,68 +90,13 @@ public class DatabaseService {
 
     }
 
-    public List<Country> findAllByCountry(String id, String name, String continent, String currency, String phoneCode) {
-        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Country> criteriaQuery = criteriaBuilder.createQuery(Country.class);
-        List<Predicate> predicates = new ArrayList<>();
-
-        // select * from country
-        Root<Country> root  = criteriaQuery.from(Country.class);
-
-        // prepare WHERE clause
-        if (!id.isEmpty()) {
-            // WHERE id ='TR'
-            Predicate idPredicate = criteriaBuilder
-                    .equal(root.get("id"), id);
-            predicates.add(idPredicate);
-        }
-
-        if (!name.isEmpty()) {
-            Predicate namePredicate = criteriaBuilder
-                    .equal(root.get("name"), name);
-            predicates.add(namePredicate);
-        }
-
-
-        if (!phoneCode.isEmpty()) {
-            try {
-                int code = Integer.parseInt(phoneCode);
-                Predicate phoneCodePredicate = criteriaBuilder
-                        .equal(root.get("phone_code"), code);
-                predicates.add(phoneCodePredicate);
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
-        }
-
-        if (!continent.isEmpty()) {
-            Predicate continentPredicate = criteriaBuilder
-                    .equal(root.get("continent"), continent);
-            predicates.add(continentPredicate);
-        }
-
-
-        if (!currency.isEmpty()) {
-            Predicate currencyPredicate = criteriaBuilder
-                    .equal(root.get("currency"), currency);
-            predicates.add(currencyPredicate);
-        }
-
-        // ORDER BY phono_code ASC/DESC
-
-        // select * from country where id like '%TR%' or name like '%Turkey%' and continent like '%AS%'
-        criteriaQuery.where(predicates.toArray(new Predicate[0]));
-        TypedQuery<Country> query = entityManager.createQuery(criteriaQuery);
-        return query.getResultList();
-
-    }
 
     public List<Country> insertAllCountries(List<Country> countries) {
         return countryRepository.saveAll(countries);
     }
 
-    public List<Country> updateCountry(String id, String name, String continent, String currency, String phoneCode, Country updateCountry) {
-        List<Country> oldCountry = findAllByCountry(id, name, continent, currency, phoneCode);
+    public List<Country> updateAllCountries(String id, String name, String continent, String currency, String phoneCode, Country updateCountry) {
+        List<Country> oldCountry = findAllByCriteria(id, name, continent, currency, phoneCode, "" );
         List<Country> newCountry = new ArrayList<>();
         for (Country c : oldCountry) {
             if (updateCountry.getId() != null)
@@ -156,15 +107,35 @@ public class DatabaseService {
                 c.setContinent(updateCountry.getContinent());
             if (updateCountry.getCurrency() != null)
                 c.setCurrency(updateCountry.getCurrency());
-            // we have to the bug fix
-            if (updateCountry.getPhoneCode() != 0)
+            if (updateCountry.getPhoneCode() > 0)
                 c.setPhoneCode(updateCountry.getPhoneCode());
             newCountry.add(c);
         }
-        DatabaseService databaseService = new DatabaseService(countryRepository);
-        databaseService.insertAllCountries(newCountry);
+
+        insertAllCountries(newCountry);
         return newCountry;
     }
+
+    public Country updateCountry(String id, Country country) {
+        Country updateCountry = countryRepository.findById(id).orElse(null);
+        if (updateCountry != null) {
+            if (country.getName() != null)
+                updateCountry.setName(country.getName());
+            if (country.getContinent() != null)
+                updateCountry.setContinent(country.getContinent());
+            if (country.getCurrency() != null)
+                updateCountry.setCurrency(country.getCurrency());
+            if (country.getPhoneCode() > 0)
+                updateCountry.setPhoneCode(country.getPhoneCode());
+        } else
+            return null;
+        return countryRepository.save(updateCountry);
+    }
+
+    public Country findByName(String name) {
+        return (Country) countryRepository.findByName(name);
+    }
+
 
     /*
     // get countries by all params (id, name, continent, currency, phoneCode, order)
