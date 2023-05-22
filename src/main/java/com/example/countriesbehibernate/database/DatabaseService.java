@@ -135,6 +135,14 @@ public class DatabaseService {
     public Country findByName(String name) {
         return (Country) countryRepository.findByName(name);
     }
+    
+    public void deleteCountry(String id) {
+        countryRepository.deleteById(id);
+    }
+
+    public Country createCountry(Country newCountry) {
+        return countryRepository.save(newCountry);
+    }
 
 
     /*
