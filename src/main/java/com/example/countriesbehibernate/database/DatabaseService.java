@@ -58,7 +58,7 @@ public class DatabaseService {
             try {
                 int code = Integer.parseInt(phoneCode);
                 Predicate phoneCodePredicate = criteriaBuilder
-                        .equal(root.get("phone_code"), code);
+                        .equal(root.get("phoneCode"), code);
                 predicates.add(phoneCodePredicate);
             } catch (Exception e) {
                 System.out.println(e.getMessage());
