@@ -52,7 +52,15 @@ public class CountryController {
         new DbHelper(databaseService).initializeDatabase();
     }
 
+    @DeleteMapping("countries/{id}")
+    public void deleteCountry(@PathVariable String id) {
+        databaseService.deleteCountry(id);
+    }
 
+    @PostMapping("countries")
+    public Country createCountry(@RequestBody Country newCountry) {
+        return databaseService.createCountry(newCountry);
+    }
 
 
 
